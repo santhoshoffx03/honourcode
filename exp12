@@ -1,0 +1,89 @@
+
+clc;
+clear;
+close all;
+
+%% Firmware Versions
+CurrentVersion = 1.2;
+LatestVersion = 1.5;
+
+fprintf('Current Firmware Version : %.1f\n',CurrentVersion);
+fprintf('Latest Firmware Version : %.1f\n',LatestVersion);
+
+UpdateSuccess = false;
+
+%% Check for Firmware Update
+if LatestVersion > CurrentVersion
+
+    disp('New Firmware Available');
+    disp('Checking Update...');
+    pause(1);
+
+    disp('Downloading Firmware...');
+    pause(2);
+
+    DownloadStatus = 1;
+
+    ChecksumServer = 54893;
+    ChecksumDownloaded = 54893;
+
+    %% Verify Firmware
+    if DownloadStatus && ...
+            ChecksumServer == ChecksumDownloaded
+
+        disp('Firmware Integrity Verified');
+        pause(1);
+
+        disp('Installing Firmware...');
+        pause(2);
+
+        CurrentVersion = LatestVersion;
+
+        disp('Restarting IoT Device...');
+        pause(2);
+
+        disp('Firmware Update Successful');
+        UpdateSuccess = true;
+
+    else
+        disp('Firmware Verification Failed');
+    end
+
+else
+    disp('Device Already Updated');
+    UpdateSuccess = true;
+end
+
+fprintf('Current Firmware Version : %.1f\n',CurrentVersion);
+
+%% Firmware Update Progress
+Stages = {'Check','Download','Verify', ...
+          'Install','Restart','Complete'};
+
+Progress = [10 30 50 70 90 100];
+
+figure;
+plot(Progress,'-o','LineWidth',2);
+grid on;
+set(gca,'XTick',1:6,'XTickLabel',Stages);
+xlabel('Firmware Update Stages');
+ylabel('Completion (%)');
+title('Firmware Update Progress');
+
+%% Firmware Update Status
+if UpdateSuccess
+    Status = [1 0];
+else
+    Status = [0 1];
+end
+
+figure;
+pie(Status,{'Updated','Not Updated'});
+title('Firmware Update Status');
+
+%% Final Status
+if UpdateSuccess
+    disp('IoT Firmware Update Simulation Completed Successfully');
+else
+    disp('IoT Firmware Update Simulation Failed');
+end
