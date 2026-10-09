@@ -1,0 +1,105 @@
+
+clc;
+clear;
+close all;
+
+%% Read Sensor Data
+data = readmatrix('SensorData.csv');
+
+LDR = data(:,1);
+POT = data(:,2);
+N = length(LDR);
+
+%% Set Thresholds
+LDRThreshold = 600;
+POTThreshold = 350;
+
+LED = zeros(N,1);
+Fan = zeros(N,1);
+Relay = zeros(N,1);
+
+%% Actuator Control Logic
+fprintf('================================================\n');
+fprintf('       IoT ACTUATOR CONTROL RESULTS\n');
+fprintf('================================================\n');
+fprintf('Sample\tLDR\tPOT\tLED\tFAN\tRELAY\n');
+
+for i = 1:N
+    LED(i) = LDR(i) < LDRThreshold;
+    Fan(i) = POT(i) > POTThreshold;
+    Relay(i) = LED(i) && Fan(i);
+
+    fprintf('%d\t%.2f\t%d\t%d\t%d\t%d\n', ...
+        i,LDR(i),POT(i),LED(i),Fan(i),Relay(i));
+end
+
+%% Activation Summary
+LED_ON = sum(LED);
+Fan_ON = sum(Fan);
+Relay_ON = sum(Relay);
+
+fprintf('\n-----------------------------------------------\n');
+fprintf('Total Sensor Samples : %d\n',N);
+fprintf('LED Activated : %d Times\n',LED_ON);
+fprintf('Fan Activated : %d Times\n',Fan_ON);
+fprintf('Relay Activated : %d Times\n',Relay_ON);
+fprintf('-----------------------------------------------\n');
+
+disp('Actuator Control Simulation Completed Successfully');
+
+%% Graph 1: LDR Threshold
+figure;
+plot(LDR,'LineWidth',1.5);
+hold on;
+plot([1 N],[LDRThreshold LDRThreshold],'--');
+grid on;
+xlabel('Sample Number');
+ylabel('LDR Value');
+title('LDR Sensor Data and Control Threshold');
+legend('LDR Data','LDR Threshold');
+
+%% Graph 2: Potentiometer Threshold
+figure;
+plot(POT,'LineWidth',1.5);
+hold on;
+plot([1 N],[POTThreshold POTThreshold],'--');
+grid on;
+xlabel('Sample Number');
+ylabel('Potentiometer Value');
+title('Potentiometer Data and Control Threshold');
+legend('POT Data','POT Threshold');
+
+%% Graph 3: LED State
+figure;
+stairs(LED,'LineWidth',2);
+grid on;
+xlabel('Sample Number');
+ylabel('LED State');
+title('LED Actuator Control');
+ylim([-0.2 1.2]);
+
+%% Graph 4: Fan State
+figure;
+stairs(Fan,'LineWidth',2);
+grid on;
+xlabel('Sample Number');
+ylabel('Fan State');
+title('Fan Actuator Control');
+ylim([-0.2 1.2]);
+
+%% Graph 5: Relay State
+figure;
+stairs(Relay,'LineWidth',2);
+grid on;
+xlabel('Sample Number');
+ylabel('Relay State');
+title('Relay Actuator Control');
+ylim([-0.2 1.2]);
+
+%% Graph 6: Activation Summary
+figure;
+bar([LED_ON Fan_ON Relay_ON]);
+grid on;
+set(gca,'XTickLabel',{'LED','Fan','Relay'});
+ylabel('Number of Activations');
+title('IoT Actuator Activation Summary');
