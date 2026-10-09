@@ -1,0 +1,100 @@
+
+clc;
+clear;
+close all;
+
+%% Read Sensor Data
+data = csvread('SensorData.csv');
+
+LDR = data(:,1);
+POT = data(:,2);
+
+N = length(LDR);
+W = 5;
+G = floor(N/W);
+
+AvgLDR = zeros(G,1);
+AvgPOT = zeros(G,1);
+MaxLDR = zeros(G,1);
+MinLDR = zeros(G,1);
+
+%% Edge Data Aggregation
+for i = 1:G
+    x = LDR((i-1)*W+1:i*W);
+    y = POT((i-1)*W+1:i*W);
+
+    AvgLDR(i) = mean(x);
+    AvgPOT(i) = mean(y);
+    MaxLDR(i) = max(x);
+    MinLDR(i) = min(x);
+end
+
+%% Display Aggregated Data
+disp('---------------------------------------------');
+disp('RAW IoT SENSOR DATA');
+disp('---------------------------------------------');
+fprintf('Total Sensor Readings : %d\n',N);
+
+disp('---------------------------------------------');
+disp('AGGREGATED DATA AT EDGE NODE');
+disp('---------------------------------------------');
+fprintf('Group\tAvg LDR\tAvg POT\tMax LDR\tMin LDR\n');
+
+for i = 1:G
+    fprintf('%d\t%.2f\t%.2f\t%.2f\t%.2f\n', ...
+        i,AvgLDR(i),AvgPOT(i),MaxLDR(i),MinLDR(i));
+end
+
+%% Packet Reduction Analysis
+OriginalPackets = N;
+AggregatedPackets = G;
+
+PacketReduction = (N-G)/N*100;
+
+disp('---------------------------------------------');
+disp('PACKET REDUCTION ANALYSIS');
+disp('---------------------------------------------');
+
+fprintf('Original Sensor Packets : %d\n',OriginalPackets);
+fprintf('Aggregated Packets : %d\n',AggregatedPackets);
+fprintf('Packet Reduction : %.2f %%\n',PacketReduction);
+
+disp('Edge Data Aggregation Completed Successfully');
+
+%% Graph 1: Raw LDR Data
+figure;
+plot(LDR,'LineWidth',1.5);
+grid on;
+xlabel('Sample Number');
+ylabel('LDR Value');
+title('Raw LDR Data');
+
+%% Graph 2: Aggregated LDR Data
+figure;
+plot(1:G,AvgLDR,'-o','LineWidth',2);
+grid on;
+xlabel('Aggregation Group');
+ylabel('Average LDR');
+title('Aggregated LDR Data');
+
+%% Graph 3: Raw vs Aggregated Data
+figure;
+plot(LDR,'LineWidth',1.2);
+hold on;
+
+pos = (W+1)/2:W:G*W;
+plot(pos,AvgLDR,'-o','LineWidth',2);
+
+grid on;
+xlabel('Sample Number');
+ylabel('LDR Sensor Value');
+legend('Raw','Aggregated');
+title('Raw Sensor Data vs Edge Aggregated Data');
+
+%% Graph 4: Packet Reduction
+figure;
+bar([N G]);
+grid on;
+set(gca,'XTickLabel',{'Before','After'});
+ylabel('Number of Data Packets');
+title('Reduction in IoT Data Transmission');
