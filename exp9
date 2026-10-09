@@ -1,0 +1,103 @@
+
+clc;
+clear;
+close all;
+
+%% Read Sensor Data
+[FileName, FilePath] = uigetfile('*.csv', ...
+    'Select SensorData.csv');
+
+if isequal(FileName,0)
+    return;
+end
+
+data = readmatrix(fullfile(FilePath,FileName));
+
+LDR = data(:,1);
+POT = data(:,2);
+N = length(LDR);
+
+%% Semantic Annotation
+DeviceID = 'NODE001';
+Location = 'IoT Laboratory';
+Unit = 'Sensor Value';
+
+% Generate timestamps at one-minute intervals
+Timestamp = datetime('now') + minutes((0:N-1)');
+
+fprintf('============================================\n');
+fprintf('RAW IoT SENSOR DATA\n');
+fprintf('============================================\n');
+fprintf('Input File : %s\n',FileName);
+fprintf('Number of Sensor Samples : %d\n',N);
+
+%% Annotated LDR Data
+fprintf('\nANNOTATED LDR DATA\n');
+fprintf('DeviceID\tTimestamp\tLocation\tSensor\tUnit\tValue\n');
+
+for i = 1:N
+    fprintf('%s\t%s\t%s\tLDR Sensor\t%s\t%.2f\n', ...
+        DeviceID, string(Timestamp(i)), Location, Unit, LDR(i));
+end
+
+%% Annotated Potentiometer Data
+fprintf('\nANNOTATED POTENTIOMETER DATA\n');
+fprintf('DeviceID\tTimestamp\tLocation\tSensor\tUnit\tValue\n');
+
+for i = 1:N
+    fprintf('%s\t%s\t%s\tPotentiometer\t%s\t%.2f\n', ...
+        DeviceID, string(Timestamp(i)), Location, Unit, POT(i));
+end
+
+%% Create Annotated Tables
+LDRTable = table( ...
+    repmat({DeviceID},N,1), Timestamp, ...
+    repmat({Location},N,1), ...
+    repmat({'LDR Sensor'},N,1), ...
+    repmat({Unit},N,1), LDR, ...
+    'VariableNames', ...
+    {'DeviceID','Timestamp','Location','Sensor','Unit','Value'});
+
+POTTable = table( ...
+    repmat({DeviceID},N,1), Timestamp, ...
+    repmat({Location},N,1), ...
+    repmat({'Potentiometer'},N,1), ...
+    repmat({Unit},N,1), POT, ...
+    'VariableNames', ...
+    {'DeviceID','Timestamp','Location','Sensor','Unit','Value'});
+
+%% Save Annotated CSV Files
+OutputFolder = uigetdir(FilePath, ...
+    'Select Folder to Save Annotated Data');
+
+if isequal(OutputFolder,0)
+    return;
+end
+
+LDRFile = fullfile(OutputFolder,'Annotated_LDR_Data.csv');
+POTFile = fullfile(OutputFolder,'Annotated_POT_Data.csv');
+
+writetable(LDRTable,LDRFile);
+writetable(POTTable,POTFile);
+
+fprintf('\n============================================\n');
+fprintf('ANNOTATED DATA SAVED SUCCESSFULLY\n');
+fprintf('============================================\n');
+fprintf('LDR File : %s\n',LDRFile);
+fprintf('POT File : %s\n',POTFile);
+
+%% Graph 1: Raw LDR Data
+figure;
+plot(LDR,'LineWidth',1.5);
+grid on;
+xlabel('Sample Number');
+ylabel('LDR Sensor Value');
+title('Raw LDR Data');
+
+%% Graph 2: LDR Data after Annotation
+figure;
+plot(LDR,'-o','LineWidth',1.5);
+grid on;
+xlabel('Sample Number');
+ylabel('LDR Sensor Value');
+title('LDR Data after Semantic Annotation');
